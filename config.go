@@ -12,13 +12,13 @@ type IProcessor interface {
 }
 
 type IExtractor interface {
-	Load(c *Config)
-	Get(string) interface{}
-	String(string) string
-	Int(string) int
-	Bool(string) bool
-	Array(string) []interface{}
-	Map(string) map[string]interface{}
+	Load(map[string]interface{}, string)
+	Get(string, ...Callback) interface{}
+	String(string, ...Callback) string
+	Int(string, ...Callback) int
+	Bool(string, ...Callback) bool
+	Array(string, ...Callback) []interface{}
+	Map(string, ...Callback) map[string]interface{}
 }
 
 // ProcessorConstruct is the type for a function capable of constructing new IProcessor.
@@ -47,7 +47,6 @@ func Init(option Option) (c *Config, err error) {
 	}
 
 	c = &Config{
-		data: make(map[string]interface{}),
 		processor: option.Processor(),
 		extractor: DefaultExtractor(),
 	}
@@ -55,8 +54,6 @@ func Init(option Option) (c *Config, err error) {
 	if option.Extractor != nil {
 		c.setExtractor(option.Extractor())
 	}
-
-	c.extractor.Load(c)
 
 	if option.File != "" {
 		err = c.Load(option.File)
@@ -73,10 +70,6 @@ func (c *Config) setExtractor(e IExtractor) {
 	c.extractor = e
 }
 
-func (c *Config) setData(k string, v interface{}) {
-	c.data[k] = v
-}
-
 func (c *Config) Load(file string) (e error) {
 	d, e := c.processor.Load(file)
 	if e != nil {
@@ -84,32 +77,32 @@ func (c *Config) Load(file string) (e error) {
 	}
 	c.l.Lock()
 	defer c.l.Unlock()
-	c.setData(filename(file), d)
+	c.extractor.Load(d, filename(file))
 	return
 }
 
-func (c *Config) Get(key string) interface{} {
-	return c.extractor.Get(key)
+func (c *Config) Get(key string, b ...Callback) interface{} {
+	return c.extractor.Get(key, b...)
 }
 
-func (c *Config) Int(key string) int {
-	return c.extractor.Int(key)
+func (c *Config) Int(key string, b ...Callback) int {
+	return c.extractor.Int(key, b...)
 }
 
-func (c *Config) String(key string) string {
-	return c.extractor.String(key)
+func (c *Config) String(key string, b ...Callback) string {
+	return c.extractor.String(key, b...)
 }
 
-func (c *Config) Bool(key string) bool {
-	return c.extractor.Bool(key)
+func (c *Config) Bool(key string, b ...Callback) bool {
+	return c.extractor.Bool(key, b...)
 }
 
-func (c *Config) Array(key string) []interface{} {
-	return c.extractor.Array(key)
+func (c *Config) Array(key string, b ...Callback) []interface{} {
+	return c.extractor.Array(key, b...)
 }
 
-func (c *Config) Map(key string) map[string]interface{} {
-	return c.extractor.Map(key)
+func (c *Config) Map(key string, b ...Callback) map[string]interface{} {
+	return c.extractor.Map(key, b...)
 }
 
 func filename(file string) string {
