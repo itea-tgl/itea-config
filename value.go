@@ -84,8 +84,13 @@ func (v *Value) Map(key string, b ...Callback) map[string]interface{} {
 	return nil
 }
 
-func (v *Value) Load(m map[string]interface{}, name string) {
+func (v *Value) Load(l ILoader, name string) error {
+	m, err := l.load()
+	if err != nil {
+		return err
+	}
 	v.recursionValue(v, name, m)
+	return nil
 }
 
 func (v *Value) value(key string) *Value {

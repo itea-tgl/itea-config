@@ -12,7 +12,7 @@ type IProcessor interface {
 }
 
 type IExtractor interface {
-	Load(map[string]interface{}, string)
+	Load(ILoader, string) error
 	Get(string, ...Callback) interface{}
 	String(string, ...Callback) string
 	Int(string, ...Callback) int
@@ -71,14 +71,15 @@ func (c *Config) setExtractor(e IExtractor) {
 }
 
 func (c *Config) Load(file string) (e error) {
-	d, e := c.processor.Load(file)
-	if e != nil {
-		return
-	}
 	c.l.Lock()
 	defer c.l.Unlock()
-	c.extractor.Load(d, filename(file))
-	return
+	return c.extractor.Load(Loader(func() (map[string]interface{}, error) {
+		d, e := c.processor.Load(file)
+		if e != nil {
+			return nil, e
+		}
+		return d, nil
+	}), filename(file))
 }
 
 func (c *Config) Get(key string, b ...Callback) interface{} {
