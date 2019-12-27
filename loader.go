@@ -1,11 +1,11 @@
 package config
 
 type ILoader interface {
-	load() (map[string]interface{}, error)
+	load(IExtractor) error
 }
 
-type Loader func() (map[string]interface{}, error)
+type Loader func(e IExtractor) error
 
-func (l Loader) load() (map[string]interface{}, error) {
-	return l()
+func (l Loader) load(e IExtractor) error {
+	return l(e)
 }
