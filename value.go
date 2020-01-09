@@ -2,7 +2,10 @@ package config
 
 import (
 	"fmt"
+	"github.com/goinggo/mapstructure"
+	"log"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -44,6 +47,13 @@ func (v *Value) Int(key string, b ...Callback) int {
 	if s, ok := i.(int); ok {
 		return s
 	}
+	if s, ok := i.(string); ok {
+		ii, err := strconv.Atoi(s)
+		if err != nil {
+			return 0
+		}
+		return ii
+	}
 	return 0
 }
 
@@ -54,6 +64,12 @@ func (v *Value) Bool(key string, b ...Callback) bool {
 	}
 	if s, ok := i.(bool); ok {
 		return s
+	}
+	if s, ok := i.(string); ok {
+		return s != "0"
+	}
+	if s, ok := i.(int); ok {
+		return s != 0
 	}
 	return false
 }
@@ -80,6 +96,39 @@ func (v *Value) Map(key string, b ...Callback) map[string]interface{} {
 			m[k] = item
 		}
 		return m
+	}
+	return nil
+}
+
+func (v *Value) Struct(key string, s interface{}, b ...Callback) interface{} {
+	i := v.Get(key, b...)
+	if i == nil {
+		return nil
+	}
+	ins, err := decode(i, reflect.TypeOf(s))
+	if err != nil {
+		log.Println("struct config error : ", err)
+	}
+	return ins
+}
+
+func (v *Value) StructArray(key string, s interface{}, b ...Callback) []interface{} {
+	i := v.Get(key, b...)
+	if i == nil {
+		return nil
+	}
+	if j, ok := i.([]interface{}); ok {
+		var list []interface{}
+		t := reflect.TypeOf(s)
+		for _, item := range j {
+			ins, err := decode(item, t)
+			if err != nil {
+				log.Println("struct array config error : ", err)
+				continue
+			}
+			list = append(list, ins)
+		}
+		return list
 	}
 	return nil
 }
@@ -175,6 +224,14 @@ func callback(value *Value, b ...Callback) {
 		}
 		return callback
 	}(b)...)
+}
+
+func decode(v interface{}, t reflect.Type) (interface{}, error){
+	ins := reflect.New(t).Interface()
+	if err := mapstructure.Decode(v, ins); err != nil {
+		return nil, err
+	}
+	return ins, nil
 }
 
 func DefaultExtractor() *Value {

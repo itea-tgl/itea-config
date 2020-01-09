@@ -2,8 +2,6 @@ package config
 
 import (
 	"errors"
-	"path"
-	"strings"
 	"sync"
 )
 
@@ -19,6 +17,8 @@ type IExtractor interface {
 	Bool(string, ...Callback) bool
 	Array(string, ...Callback) []interface{}
 	Map(string, ...Callback) map[string]interface{}
+	Struct(string, interface{}, ...Callback) interface{}
+	StructArray(string, interface{}, ...Callback) []interface{}
 }
 
 // ProcessorConstruct is the type for a function capable of constructing new IProcessor.
@@ -73,14 +73,9 @@ func (c *Config) setExtractor(e IExtractor) {
 func (c *Config) Load(file string) (e error) {
 	c.l.Lock()
 	defer c.l.Unlock()
-	return Loader(func(e IExtractor) error {
-		d, err := c.processor.Load(file)
-		if err != nil {
-			return err
-		}
-		e.Load(d, filename(file))
-		return nil
-	}).load(c.extractor)
+	return Loader(func() string {
+		return file
+	}).load(c.processor, c.extractor)
 }
 
 func (c *Config) Get(key string, b ...Callback) interface{} {
@@ -107,8 +102,10 @@ func (c *Config) Map(key string, b ...Callback) map[string]interface{} {
 	return c.extractor.Map(key, b...)
 }
 
-func filename(file string) string {
-	filename := path.Base(file)
-	suffix := path.Ext(filename)
-	return strings.TrimSuffix(filename, suffix)
+func (c *Config) Struct(key string, s interface{}, b ...Callback) interface{} {
+	return c.extractor.Struct(key, s, b...)
+}
+
+func (c *Config) StructArray(key string, s interface{}, b ...Callback) []interface{} {
+	return c.extractor.StructArray(key, s, b...)
 }

@@ -1,6 +1,9 @@
 package config
 
-import "gopkg.in/yaml.v2"
+import (
+	"gopkg.in/yaml.v2"
+	"strconv"
+)
 
 type Yaml struct {
 	Base
@@ -27,7 +30,15 @@ func yamlTrans(m map[string]interface{}) map[string]interface{} {
 		if v1, ok := v.(map[interface{}]interface{}); ok {
 			mm := make(map[string]interface{})
 			for k1, v2 := range v1 {
-				mm[k1.(string)] = v2
+				if vk1, ok := k1.(string); ok {
+					mm[vk1] = v2
+					continue
+				}
+
+				if vk2, ok := k1.(int); ok {
+					mm[strconv.Itoa(vk2)] = v2
+					continue
+				}
 			}
 			m[k] = yamlTrans(mm)
 		}

@@ -1,0 +1,21 @@
+user:
+  name: calvin
+  age: 10
+  male: true
+  female: 0
+  property:
+    aa: aa
+    bb: bb
+    11: 11
+  list:
+    - aaa
+    - bbb
+    - ccc
+struct:
+  Param1: aaa
+  Param2: bbb
+struct_array:
+  - Param1: aaa
+    Param2: bbb
+  - Param1: ccc
+    Param2: ddd

@@ -1,13 +1,14 @@
 package config
 
 import (
+	"encoding/json"
 	"github.com/json-iterator/go"
 )
 
-var json jsoniter.API
+var j jsoniter.API
 
 func init() {
-	json = jsoniter.Config{
+	j = jsoniter.Config{
 		EscapeHTML:             false,
 		SortMapKeys:            true,
 		ValidateJsonRawMessage: true,
@@ -26,11 +27,26 @@ func (y Json) Load(file string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	var d map[string]interface{}
-	err = json.Unmarshal(dat, &d)
+	err = j.Unmarshal(dat, &d)
 	if err != nil {
 		return nil, err
 	}
+	jsonTrans(d)
 	return d, nil
+}
+
+func jsonTrans(m map[string]interface{}) map[string]interface{} {
+	for k, v := range m {
+		if v1, ok := v.(map[string]interface{}); ok {
+			m[k] = jsonTrans(v1)
+			continue
+		}
+		if v1, ok := v.(json.Number); ok {
+			i, _ := v1.Int64()
+			m[k] = int(i)
+		}
+	}
+	return m
 }
 
 // JsonProcessor returns a Processor which load json config
