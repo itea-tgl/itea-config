@@ -1,6 +1,4 @@
-module itea-config
-
-go 1.13
+module github.com/itea-tgl/itea-config
 
 require (
 	github.com/goinggo/mapstructure v0.0.0-20140717182941-194205d9b4a9
@@ -9,3 +7,5 @@ require (
 	gopkg.in/ini.v1 v1.51.1
 	gopkg.in/yaml.v2 v2.2.7
 )
+
+go 1.13
