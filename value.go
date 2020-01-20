@@ -10,11 +10,11 @@ import (
 )
 
 type Value struct {
-	Key 		string
-	Type 		string
-	Value		interface{}
-	Child 		map[string]*Value
-	Callback 	[]Callback
+	Key      string
+	Type     string
+	Value    interface{}
+	Child    map[string]*Value
+	Callback []Callback
 }
 
 func (v *Value) Get(key string, b ...Callback) interface{} {
@@ -186,12 +186,12 @@ func (v *Value) recursionValue(parent *Value, k string, i interface{}) {
 		value = &Value{
 			Key:      key,
 			Type:     t,
-			Value:	  i,
+			Value:    i,
 			Child:    make(map[string]*Value),
 			Callback: make([]Callback, 0),
 		}
 	}
-	
+
 	if t == "map" {
 		for k1, v1 := range i.(map[string]interface{}) {
 			v.recursionValue(value, k1, v1)
@@ -208,11 +208,11 @@ func trigger(value *Value) {
 }
 
 func callback(value *Value, b ...Callback) {
-	value.Callback = append(value.Callback, func(b []Callback) []Callback {
-		var callback []Callback
+	value.Callback = func(b []Callback) []Callback {
+		callback := value.Callback
 		for _, c := range b {
 			if func(b Callback) bool {
-				for _, c := range value.Callback {
+				for _, c := range callback {
 					if reflect.ValueOf(b) == reflect.ValueOf(c) {
 						return false
 					}
@@ -223,10 +223,10 @@ func callback(value *Value, b ...Callback) {
 			}
 		}
 		return callback
-	}(b)...)
+	}(b)
 }
 
-func decode(v interface{}, t reflect.Type) (interface{}, error){
+func decode(v interface{}, t reflect.Type) (interface{}, error) {
 	ins := reflect.New(t).Interface()
 	if err := mapstructure.Decode(v, ins); err != nil {
 		return nil, err

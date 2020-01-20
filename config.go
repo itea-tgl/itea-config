@@ -29,16 +29,16 @@ type ExtractorConstruct func() IExtractor
 
 // Option is used to pass multiple configuration options to Config's constructors.
 type Option struct {
-	File 		string
-	Processor 	ProcessorConstruct
-	Extractor	ExtractorConstruct
+	File      string
+	Processor ProcessorConstruct
+	Extractor ExtractorConstruct
 }
 
 type Config struct {
-	data map[string]interface{}
+	data      map[string]interface{}
 	processor IProcessor
 	extractor IExtractor
-	l sync.RWMutex
+	l         sync.RWMutex
 }
 
 func Init(option Option) (c *Config, err error) {
@@ -52,7 +52,7 @@ func Init(option Option) (c *Config, err error) {
 	}
 
 	if option.Extractor != nil {
-		c.setExtractor(option.Extractor())
+		c.extractor = option.Extractor()
 	}
 
 	if option.File != "" {
@@ -60,14 +60,6 @@ func Init(option Option) (c *Config, err error) {
 	}
 
 	return c, err
-}
-
-func (c *Config) setProcessor(p IProcessor) {
-	c.processor = p
-}
-
-func (c *Config) setExtractor(e IExtractor) {
-	c.extractor = e
 }
 
 func (c *Config) Load(file string) (e error) {

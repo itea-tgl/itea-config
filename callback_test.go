@@ -31,10 +31,12 @@ func Test_Callback(t *testing.T) {
 
 	var v interface{}
 
-	// get config value and register callback function
-	v = conf.Get("test-config.user.name", Reload(func(i interface{}) {
+	callback := Reload(func(i interface{}) {
 		v = i
-	}))
+	})
+
+	// get config value and register callback function
+	v = conf.Get("test-config.user.name", callback, callback)
 	if !reflect.DeepEqual(v, "calvin") {
 		t.Errorf("Test_Callback before failed, expect %v, get %v ", "calvin", v)
 	}
