@@ -45,9 +45,17 @@ func Test_Callback(t *testing.T) {
 	f, _ := ioutil.ReadFile(file)
 	fs := string(f)
 	nfs := strings.Replace(fs, "calvin", "ding", 1)
-	ioutil.WriteFile(file, []byte(nfs), 0)
+	err := ioutil.WriteFile(file, []byte(nfs), 0777)
+	if err != nil {
+		t.Error("file read error", err)
+	}
 	// rollback after test
-	defer ioutil.WriteFile(file, []byte(fs), 0)
+	defer func() {
+		err := ioutil.WriteFile(file, []byte(fs), 0777)
+		if err != nil {
+			t.Error("file read error", err)
+		}
+	}()
 
 	// reload config file
 	conf.Load(file)
